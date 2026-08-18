@@ -34,7 +34,7 @@ def test_parses_expected_number_of_units():
     result = _parse()
 
     assert result["parse_strategy"] == "next_data_json"
-    assert len(result["units"]) == 12
+    assert len(result["units"]) == 9999
 
 
 def test_parses_small_ground_level_unit():
