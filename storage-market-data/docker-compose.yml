@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: storage
+      POSTGRES_PASSWORD: storage
+      POSTGRES_DB: storage_market_data
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U storage -d storage_market_data"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:

@@ -1,7 +1,8 @@
-# storage-market-data — day one
+# storage-market-data — Milestone 2
 
-Milestone 1 skeleton: one provider (StorQuest), one facility (Tracy, CA),
-no database yet. Corresponds to Phases 1–6 of `planning.md`.
+StorQuest pricing/availability for a small set of real facilities,
+validated with Pydantic and stored as append-only observations in
+Postgres. Corresponds to `MILESTONE_2_PLAN.md`.
 
 ## Setup
 
@@ -10,6 +11,8 @@ python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
 cp .env.example .env
+docker compose up -d
+alembic upgrade head
 ```
 
 ## Run it
@@ -18,8 +21,9 @@ cp .env.example .env
 python scripts/scrape_facility.py
 ```
 
-This fetches the real Tracy, CA StorQuest page, saves the raw HTML to
-`data/raw/`, parses it, and prints the result as JSON.
+Fetches ~10 StorQuest facility pages (Tracy, CA first), saves raw HTML to
+`data/raw/`, validates each parse, writes append-only observations to
+Postgres, and prints JSON. One facility failing does not stop the rest.
 
 ## Run tests
 
@@ -27,21 +31,11 @@ This fetches the real Tracy, CA StorQuest page, saves the raw HTML to
 pytest tests/ -v
 ```
 
-## What's real vs. what's a placeholder right now
-
-- **Real and working:** the HTTP collector, raw-response saving, project
-  structure, test setup.
-- **Not yet verified:** `app/providers/storquest/parser.py`. It was written
-  from a text preview of the live page, not the real HTML/DOM — see the
-  warning comment at the top of that file. The synthetic test fixture in
-  `tests/fixtures/` was hand-built to match that same text preview, so the
-  tests currently passing only prove the parsing *logic* works, not that
-  it's correct against the real site.
-
-**First real task:** run `scripts/scrape_facility.py`, inspect the saved
-HTML in `data/raw/`, and fix the parser (and swap in a real fixture) to
-match what's actually there. `CURSOR_PROMPT.md` has the full brief for
-this.
+Parser and model tests run without Postgres. Repository tests need a
+running database (`DATABASE_URL` in `.env`, or `TEST_DATABASE_URL`); they
+use a throwaway `storage_market_data_test` database, not the dev data.
+Docker Compose publishes Postgres on host port **5433** so it does not
+clash with a native install on 5432.
 
 ## robots.txt check (already done)
 

@@ -25,6 +25,7 @@ class Settings:
         "storage-market-data-bot/0.1 "
         "(personal research project; contact: set-your-email-here@example.com)"
     )
+    database_url: str | None = os.getenv("DATABASE_URL", "").strip() or None
 
 
 settings = Settings()
