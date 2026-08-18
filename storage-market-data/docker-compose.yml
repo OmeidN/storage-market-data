@@ -15,5 +15,19 @@ services:
       timeout: 5s
       retries: 10
 
+  app:
+    build: .
+    profiles: ["app"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://storage:storage@db:5432/storage_market_data
+      REQUEST_DELAY_SECONDS: "3"
+      LOG_LEVEL: INFO
+      RAW_DATA_DIR: /app/data/raw
+    volumes:
+      - ./data/raw:/app/data/raw
+
 volumes:
   pgdata:

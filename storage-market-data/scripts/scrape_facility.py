@@ -3,7 +3,9 @@ Fetch StorQuest facility pages, validate, store observations, and print JSON.
 
 Usage:
     python scripts/scrape_facility.py
+    python scripts/scrape_facility.py --limit 1
 """
+import argparse
 import json
 
 from app.pipeline import scrape_all
@@ -11,7 +13,20 @@ from app.providers.storquest.facilities import STORQUEST_FACILITIES
 
 
 def main() -> None:
-    outcomes = scrape_all(STORQUEST_FACILITIES)
+    parser = argparse.ArgumentParser(description="Scrape StorQuest facility pages.")
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Scrape only the first N facilities (default: all).",
+    )
+    args = parser.parse_args()
+    targets = list(STORQUEST_FACILITIES)
+    if args.limit is not None:
+        targets = targets[: args.limit]
+
+    outcomes = scrape_all(targets)
     failures = 0
     for outcome in outcomes:
         slug = outcome.target.slug
