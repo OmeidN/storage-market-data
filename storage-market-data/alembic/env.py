@@ -18,9 +18,11 @@ def _database_url() -> str:
     url = config.get_main_option("sqlalchemy.url")
     if url and not url.startswith("driver://"):
         return url
-    if settings.database_url:
-        return settings.database_url
-    raise RuntimeError("DATABASE_URL is not set")
+    # Migrations must not go through the transaction pooler (:6543).
+    direct = settings.database_url_direct or settings.database_url
+    if direct:
+        return direct
+    raise RuntimeError("DATABASE_URL_DIRECT or DATABASE_URL is not set")
 
 
 def run_migrations_offline() -> None:

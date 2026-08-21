@@ -26,6 +26,11 @@ class Settings:
         "(personal research project; contact: set-your-email-here@example.com)"
     )
     database_url: str | None = os.getenv("DATABASE_URL", "").strip() or None
+    # Direct Postgres (port 5432). Alembic uses this so migrations never go
+    # through the transaction pooler. Falls back to DATABASE_URL for local Compose.
+    database_url_direct: str | None = (
+        os.getenv("DATABASE_URL_DIRECT", "").strip() or None
+    )
 
 
 settings = Settings()

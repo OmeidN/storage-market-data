@@ -1,9 +1,10 @@
-# storage-market-data — Milestone 3
+# storage-market-data — Milestone 4
 
 StorQuest pricing/availability for a small set of real facilities,
 validated with Pydantic and stored as append-only observations in
-Postgres. The app runs the same way on any machine with Docker;
-GitHub Actions runs the full test suite on every push.
+Postgres. Locally it runs under Docker; in GCP it runs as a Cloud Run
+Job on a schedule against Supabase (transaction pooler). GitHub Actions
+still uses throwaway Postgres — never the Supabase URL.
 
 ## Quickstart (Docker only)
 
@@ -55,7 +56,41 @@ pytest tests/ -v
 
 Parser and model tests run without Postgres. Repository tests need
 `DATABASE_URL` (or `TEST_DATABASE_URL`); they use a throwaway
-`storage_market_data_test` database, not the dev data.
+`storage_market_data_test` database, not the dev data. Point pytest at
+local Compose Postgres, not Supabase.
+
+## Cloud (GCP + Supabase)
+
+Do not commit `.env` or connection strings. Two URLs:
+
+- `DATABASE_URL` — transaction pooler (`:6543`). Laptop scrape and the Cloud Run Job.
+- `DATABASE_URL_DIRECT` — Alembic only. Prefer direct `:5432`. If that host
+  does not resolve (Supabase free-tier is often IPv6-only), use the
+  **session** pooler (`:5432` on the pooler hostname). Never `:6543`.
+
+```bash
+alembic upgrade head
+python scripts/scrape_facility.py --limit 1
+```
+
+GCP project `storagemarketdata`, region `us-west1` (Oregon, next to
+Supabase `us-west-2`). Push the image:
+
+```bash
+bash scripts/gcp_push_image.sh
+```
+
+The Cloud Run Job `scrape-facilities` uses Secret Manager `DATABASE_URL`
+(pooler URI), `RAW_DATA_DIR=/tmp/raw`, and `python scripts/scrape_facility.py`.
+The job SA `scrape-job@…` can only read that secret.
+
+Cloud Scheduler `scrape-facilities-schedule` POSTs to the Job daily at
+06:00 America/Los_Angeles (`0 6 * * *`). Its SA `scrape-scheduler@…`
+has `roles/run.invoker` on that Job only — nothing broader. Manual run:
+
+```bash
+gcloud run jobs execute scrape-facilities --region=us-west1 --wait
+```
 
 ## CI
 
