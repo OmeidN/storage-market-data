@@ -1,0 +1,6 @@
+provider,slug,market_name
+storquest,gap-test,Gap Test Market
+storquest,inferred-test,Inferred Test Market
+storquest,confirmed-test,Confirmed Test Market
+storquest,gated-test,Gated Test Market
+storquest,ungated-test,Ungated Test Market

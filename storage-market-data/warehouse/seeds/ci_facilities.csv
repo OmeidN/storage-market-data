@@ -1,0 +1,6 @@
+id,provider,slug,url,name,address,created_at
+1,storquest,gap-test,https://example.com/gap,Gap Test,1 Test St,2026-01-01T00:00:00+00:00
+2,storquest,inferred-test,https://example.com/inferred,Inferred Test,2 Test St,2026-01-01T00:00:00+00:00
+3,storquest,confirmed-test,https://example.com/confirmed,Confirmed Test,3 Test St,2026-01-01T00:00:00+00:00
+4,storquest,gated-test,https://example.com/gated,Gated Test,4 Test St,2026-01-01T00:00:00+00:00
+5,storquest,ungated-test,https://example.com/ungated,Ungated Test,5 Test St,2026-01-01T00:00:00+00:00

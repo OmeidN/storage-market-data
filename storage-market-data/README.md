@@ -92,6 +92,30 @@ has `roles/run.invoker` on that Job only — nothing broader. Manual run:
 gcloud run jobs execute scrape-facilities --region=us-west1 --wait
 ```
 
+## Warehouse (BigQuery + dbt, Milestone 5)
+
+Does not change the scrape job. Definitions: [docs/velocity_definitions.md](docs/velocity_definitions.md).
+
+```bash
+python scripts/replicate_to_bigquery.py   # truncate-reload into storage_market_data_raw
+cd warehouse
+dbt seed --select facility_market_map --target prod --profiles-dir .
+dbt run --target prod --profiles-dir .
+```
+
+Synthetic scrape-gap tests (no GCP secrets):
+
+```bash
+cd warehouse
+dbt seed --target ci --profiles-dir .
+dbt run --target ci --profiles-dir .
+dbt test --target ci --profiles-dir .
+```
+
+Cloud Run Job `replicate-to-bigquery` runs the copy + dbt daily at **06:30** PT (`30 6 * * *`), after the 06:00 scrape. Marts: `storage_market_data_marts`. Rental velocity is gated (`insufficient_history`); a NULL average is expected until 14 snapshot days and 2 lease events per tier.
+
+Internal Looker Studio: connect to those marts — see [docs/looker_studio_internal.md](docs/looker_studio_internal.md). Not a client report (Milestone 7).
+
 ## CI
 
 Every push and pull request runs GitHub Actions: a Postgres 16 service,

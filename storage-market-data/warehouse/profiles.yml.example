@@ -1,0 +1,15 @@
+# Local / Cloud Run dbt against BigQuery. Do not commit credentials.
+# Usage: copy to profiles.yml or merge under outputs.prod, then:
+#   dbt run --target prod --profiles-dir .
+
+warehouse:
+  target: prod
+  outputs:
+    prod:
+      type: bigquery
+      method: oauth
+      project: storagemarketdata
+      dataset: storage_market_data_dbt
+      location: us-west1
+      threads: 2
+      timeout_seconds: 300

@@ -39,3 +39,22 @@ jobs:
         run: alembic upgrade head
       - name: Run tests
         run: pytest tests/ -v
+
+  dbt:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: storage-market-data/warehouse
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dbt-duckdb
+        run: pip install "dbt-duckdb>=1.8,<2"
+      - name: Seed fixture data
+        run: dbt seed --target ci --profiles-dir .
+      - name: Build staging and marts
+        run: dbt run --target ci --profiles-dir .
+      - name: Run velocity tests including scrape-gap
+        run: dbt test --target ci --profiles-dir .

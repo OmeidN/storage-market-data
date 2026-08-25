@@ -1,0 +1,13 @@
+# Used by Cloud Run and local `dbt run --target prod --profiles-dir .`
+# Auth is Application Default Credentials (no secrets in git).
+warehouse:
+  target: prod
+  outputs:
+    prod:
+      type: bigquery
+      method: oauth
+      project: storagemarketdata
+      dataset: storage_market_data_dbt
+      location: us-west1
+      threads: 2
+      timeout_seconds: 300

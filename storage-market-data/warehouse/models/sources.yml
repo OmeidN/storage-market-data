@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: raw
+    description: Faithful copy of Postgres. See docs/velocity_definitions.md.
+    schema: storage_market_data_raw
+    tables:
+      - name: facilities
+      - name: units
+      - name: observations

@@ -1,0 +1,18 @@
+# ci: DuckDB, no secrets (GitHub Actions).
+# prod: BigQuery via Application Default Credentials.
+warehouse:
+  target: ci
+  outputs:
+    ci:
+      type: duckdb
+      path: target/warehouse_ci.duckdb
+      schema: main
+      threads: 1
+    prod:
+      type: bigquery
+      method: oauth
+      project: storagemarketdata
+      dataset: storage_market_data_dbt
+      location: us-west1
+      threads: 2
+      timeout_seconds: 300

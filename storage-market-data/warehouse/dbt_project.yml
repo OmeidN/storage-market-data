@@ -1,0 +1,44 @@
+name: warehouse
+profile: warehouse
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+# See docs/velocity_definitions.md — rules live there, not ad hoc in SQL.
+models:
+  warehouse:
+    +materialized: view
+    staging:
+      +schema: staging
+    marts:
+      +schema: marts
+      +materialized: table
+
+seeds:
+  warehouse:
+    facility_market_map:
+      +quote_columns: false
+    ci_facilities:
+      +enabled: "{{ target.type == 'duckdb' }}"
+    ci_units:
+      +enabled: "{{ target.type == 'duckdb' }}"
+    ci_observations:
+      +enabled: "{{ target.type == 'duckdb' }}"
+      +column_types:
+        id: integer
+        unit_id: integer
+        scraped_at: varchar
+        standard_price: integer
+        promo_price: integer
+        availability_status: varchar
+        availability_text: varchar
+        free_first_month: boolean
+        parse_strategy: varchar
+    ci_facility_market_map:
+      +enabled: "{{ target.type == 'duckdb' }}"

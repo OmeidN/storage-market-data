@@ -1,0 +1,5 @@
+# Warehouse (Milestone 5)
+#
+# dbt-duckdb>=1.8,<2          # CI / local synthetic tests (no GCP secrets)
+# dbt-bigquery>=1.8,<2        # prod runs against BigQuery
+# google-cloud-bigquery>=3.27 # scripts/replicate_to_bigquery.py
