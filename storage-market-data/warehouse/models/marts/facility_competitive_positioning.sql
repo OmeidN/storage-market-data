@@ -9,7 +9,8 @@ with latest_obs as (
     select
         u.facility_id,
         o.availability_status,
-        o.standard_price, -- storage monthly asking (M6)
+        o.price,
+        o.price_data_available,
         o.scraped_at,
         row_number() over (
             partition by u.facility_id, u.id
@@ -30,7 +31,7 @@ asking_stats as (
     select
         facility_id,
         count(*) as listed_unit_count,
-        avg(standard_price) as avg_asking_price,
+        avg(case when price_data_available then price end) as avg_asking_price,
         sum(case when availability_status = 'AVAILABLE' then 1 else 0 end) as available_unit_count,
         sum(case when availability_status = 'SOLD_OUT' then 1 else 0 end) as sold_out_unit_count
     from latest
@@ -53,6 +54,7 @@ select
     m.market_name,
     f.provider,
     f.slug,
+    f.asset_type,
     f.id as facility_id,
     a.listed_unit_count,
     a.avg_asking_price,

@@ -1,14 +1,7 @@
 """Hand-picked StorQuest facility pages. Not a discovery crawler."""
 from __future__ import annotations
 
-from dataclasses import dataclass
-
-
-@dataclass(frozen=True)
-class FacilityTarget:
-    slug: str
-    url: str
-
+from app.providers.targets import FacilityTarget
 
 STORQUEST_FACILITIES: tuple[FacilityTarget, ...] = (
     FacilityTarget(

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import (
     Boolean,
@@ -10,6 +11,7 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
     func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -32,6 +34,12 @@ class FacilityRow(Base):
     url: Mapped[str] = mapped_column(String, nullable=False)
     name: Mapped[str | None] = mapped_column(String, nullable=True)
     address: Mapped[str | None] = mapped_column(String, nullable=True)
+    asset_type: Mapped[str] = mapped_column(
+        String, nullable=False, server_default="self_storage"
+    )
+    attributes: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=text("'{}'::jsonb")
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -40,6 +48,8 @@ class FacilityRow(Base):
 
 
 class UnitRow(Base):
+    """Rentable space product. Table name stays `units` (Listing in Pydantic)."""
+
     __tablename__ = "units"
     __table_args__ = (
         UniqueConstraint("facility_id", "identity_key", name="uq_units_facility_identity"),
@@ -51,9 +61,16 @@ class UnitRow(Base):
     )
     identity_key: Mapped[str] = mapped_column(String, nullable=False)
     provider_unit_id: Mapped[str | None] = mapped_column(String, nullable=True)
-    width_ft: Mapped[int] = mapped_column(Integer, nullable=False)
-    length_ft: Mapped[int] = mapped_column(Integer, nullable=False)
+    square_footage: Mapped[int] = mapped_column(Integer, nullable=False)
+    width_ft: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    length_ft: Mapped[int | None] = mapped_column(Integer, nullable=True)
     features: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+    attributes: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=text("'{}'::jsonb")
+    )
+    price_data_available: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("true")
+    )
 
     facility: Mapped[FacilityRow] = relationship(back_populates="units")
     observations: Mapped[list[ObservationRow]] = relationship(back_populates="unit")
@@ -68,6 +85,11 @@ class ObservationRow(Base):
     )
     scraped_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
+    )
+    price: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    price_unit: Mapped[str | None] = mapped_column(String, nullable=True)
+    price_data_available: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("true")
     )
     standard_price: Mapped[int | None] = mapped_column(Integer, nullable=True)
     promo_price: Mapped[int | None] = mapped_column(Integer, nullable=True)

@@ -11,3 +11,4 @@ data/raw/*.json
 warehouse/target/
 warehouse/dbt_packages/
 warehouse/logs/
+docs/llm_extraction_readyspaces.last.json

@@ -1,0 +1,2 @@
+# Cloud Run Linux images fail on CRLF shebangs (`env: bash\r`).
+*.sh text eol=lf

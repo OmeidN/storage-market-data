@@ -9,20 +9,32 @@ import argparse
 import json
 
 from app.pipeline import scrape_all
+from app.providers.readyspaces.facilities import READYSPACES_FACILITIES
 from app.providers.storquest.facilities import STORQUEST_FACILITIES
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Scrape StorQuest facility pages.")
+    parser = argparse.ArgumentParser(description="Scrape facility pages.")
     parser.add_argument(
         "--limit",
         type=int,
         default=None,
         metavar="N",
-        help="Scrape only the first N facilities (default: all).",
+        help="Scrape only the first N facilities of the selected provider set.",
+    )
+    parser.add_argument(
+        "--provider",
+        choices=("all", "storquest", "readyspaces"),
+        default="all",
+        help="Which provider list to scrape (default: all).",
     )
     args = parser.parse_args()
-    targets = list(STORQUEST_FACILITIES)
+    if args.provider == "storquest":
+        targets = list(STORQUEST_FACILITIES)
+    elif args.provider == "readyspaces":
+        targets = list(READYSPACES_FACILITIES)
+    else:
+        targets = list(STORQUEST_FACILITIES) + list(READYSPACES_FACILITIES)
     if args.limit is not None:
         targets = targets[: args.limit]
 

@@ -26,14 +26,38 @@ seeds:
       +quote_columns: false
     ci_facilities:
       +enabled: "{{ target.type == 'duckdb' }}"
+      +column_types:
+        id: integer
+        provider: varchar
+        slug: varchar
+        url: varchar
+        name: varchar
+        address: varchar
+        created_at: varchar
+        asset_type: varchar
+        attributes: varchar
     ci_units:
       +enabled: "{{ target.type == 'duckdb' }}"
+      +column_types:
+        id: integer
+        facility_id: integer
+        identity_key: varchar
+        provider_unit_id: varchar
+        square_footage: integer
+        width_ft: integer
+        length_ft: integer
+        features: varchar
+        attributes: varchar
+        price_data_available: boolean
     ci_observations:
       +enabled: "{{ target.type == 'duckdb' }}"
       +column_types:
         id: integer
         unit_id: integer
         scraped_at: varchar
+        price: integer
+        price_unit: varchar
+        price_data_available: boolean
         standard_price: integer
         promo_price: integer
         availability_status: varchar

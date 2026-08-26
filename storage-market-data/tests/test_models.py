@@ -5,10 +5,13 @@ import pytest
 from pydantic import ValidationError
 
 from app.models import (
+    AssetType,
     AvailabilityStatus,
     Facility,
     FacilityPage,
+    Listing,
     ParseStatus,
+    PriceUnit,
     Unit,
     facility_page_from_parse,
 )
@@ -70,7 +73,12 @@ def test_tracy_fixture_round_trips_into_models():
     assert all(unit.provider_unit_id for unit in page.units)
     assert all(unit.identity_key == unit.provider_unit_id for unit in page.units)
 
+    assert page.facility.asset_type == AssetType.SELF_STORAGE
     first = page.units[0]
+    assert first.square_footage == 25
+    assert first.price == 84
+    assert first.price_unit == PriceUnit.PER_UNIT_PER_MONTH
+    assert first.price_data_available is True
     assert first.width_ft == 5
     assert first.length_ft == 5
     assert first.standard_price == 84
@@ -174,3 +182,61 @@ def test_parser_found_nothing_is_not_sold_out():
     assert empty.observations() == []
     assert failed.observations() == []
     assert sold_out.observations() == []  # no scraped_at yet
+
+
+def test_warehouse_listing_round_trips_through_same_model():
+    page = facility_page_from_parse(
+        {
+            "facility_name": "DTLA",
+            "address": "100 Warehouse St",
+            "parse_strategy": "html_swiper",
+            "asset_type": "warehouse_industrial",
+            "units": [
+                {
+                    "provider_unit_id": "K8",
+                    "square_footage": 1900,
+                    "price": 24,
+                    "price_unit": "per_sqft_per_year",
+                    "price_data_available": True,
+                    "availability_text": "Now",
+                    "attributes": {"size_tier": "large"},
+                }
+            ],
+        },
+        provider="readyspaces",
+        slug="downtown-los-angeles",
+        url="https://readyspaces.com/location/los-angeles/downtown-los-angeles/",
+    )
+    listing = page.listings[0]
+    assert page.facility.asset_type == AssetType.WAREHOUSE_INDUSTRIAL
+    assert isinstance(listing, Listing)
+    assert listing.square_footage == 1900
+    assert listing.price == 24
+    assert listing.price_unit == PriceUnit.PER_SQFT_PER_YEAR
+    assert listing.price_data_available is True
+    assert listing.width_ft is None
+    assert listing.identity_key == "K8"
+
+
+def test_listing_without_published_price_is_valid():
+    listing = Listing(
+        provider_unit_id="K8",
+        square_footage=1900,
+        price=None,
+        price_data_available=False,
+        availability_status=AvailabilityStatus.AVAILABLE,
+        availability_text="Contact for Pricing",
+    )
+    assert listing.price is None
+    assert listing.price_unit is None
+    assert listing.price_data_available is False
+
+
+def test_published_price_still_required_when_available_flag_true():
+    with pytest.raises(ValidationError):
+        Listing(
+            square_footage=1900,
+            price=None,
+            price_data_available=True,
+            availability_status=AvailabilityStatus.AVAILABLE,
+        )

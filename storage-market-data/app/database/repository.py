@@ -21,10 +21,10 @@ def save_observation(
     """
     Upsert facility and units; always INSERT a new observation row.
 
-    Writes nothing when parse_status is not OK or the unit list is empty,
+    Writes nothing when parse_status is not OK or the listing list is empty,
     so a failed scrape cannot be recorded as sold out.
     """
-    if page.parse_status != ParseStatus.OK or not page.units:
+    if page.parse_status != ParseStatus.OK or not page.listings:
         return
 
     own_session = session is None
@@ -66,6 +66,8 @@ def _save(
             url=facility_url,
             name=page.facility.name,
             address=page.facility.address,
+            asset_type=page.facility.asset_type.value,
+            attributes=dict(page.facility.attributes),
         )
         session.add(facility)
         session.flush()
@@ -73,40 +75,52 @@ def _save(
         facility.url = facility_url
         facility.name = page.facility.name
         facility.address = page.facility.address
+        facility.asset_type = page.facility.asset_type.value
+        facility.attributes = dict(page.facility.attributes)
 
-    for unit in page.units:
+    for listing in page.listings:
+        attrs = dict(listing.attributes)
         row = session.scalar(
             select(UnitRow).where(
                 UnitRow.facility_id == facility.id,
-                UnitRow.identity_key == unit.identity_key,
+                UnitRow.identity_key == listing.identity_key,
             )
         )
         if row is None:
             row = UnitRow(
                 facility_id=facility.id,
-                identity_key=unit.identity_key,
-                provider_unit_id=unit.provider_unit_id,
-                width_ft=unit.width_ft,
-                length_ft=unit.length_ft,
-                features=list(unit.features),
+                identity_key=listing.identity_key,
+                provider_unit_id=listing.provider_unit_id,
+                square_footage=listing.square_footage,
+                width_ft=listing.width_ft,
+                length_ft=listing.length_ft,
+                features=list(listing.features),
+                attributes=attrs,
+                price_data_available=listing.price_data_available,
             )
             session.add(row)
             session.flush()
         else:
-            row.provider_unit_id = unit.provider_unit_id
-            row.width_ft = unit.width_ft
-            row.length_ft = unit.length_ft
-            row.features = list(unit.features)
+            row.provider_unit_id = listing.provider_unit_id
+            row.square_footage = listing.square_footage
+            row.width_ft = listing.width_ft
+            row.length_ft = listing.length_ft
+            row.features = list(listing.features)
+            row.attributes = attrs
+            row.price_data_available = listing.price_data_available
 
         session.add(
             ObservationRow(
                 unit_id=row.id,
                 scraped_at=scraped_at,
-                standard_price=unit.standard_price,
-                promo_price=unit.promo_price,
-                availability_status=unit.availability_status.value,
-                availability_text=unit.availability_text,
-                free_first_month=unit.free_first_month,
+                price=listing.price,
+                price_unit=listing.price_unit.value if listing.price_unit else None,
+                price_data_available=listing.price_data_available,
+                standard_price=listing.standard_price,
+                promo_price=listing.promo_price,
+                availability_status=listing.availability_status.value,
+                availability_text=listing.availability_text,
+                free_first_month=listing.free_first_month,
                 parse_strategy=page.parse_strategy,
             )
         )

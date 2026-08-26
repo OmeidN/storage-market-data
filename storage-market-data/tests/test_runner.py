@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 from app.collectors.http import RawResponse
 from app.models import ParseStatus
 from app.pipeline import scrape_all
-from app.providers.storquest.facilities import FacilityTarget
+from app.providers.targets import FacilityTarget
 
 
 def test_broken_facility_does_not_halt_others(monkeypatch):
@@ -48,7 +48,7 @@ def test_broken_facility_does_not_halt_others(monkeypatch):
         }
 
     monkeypatch.setattr("app.pipeline.fetch", fake_fetch)
-    monkeypatch.setattr("app.pipeline.parse_facility_page", fake_parse)
+    monkeypatch.setattr("app.pipeline.parse_storquest", fake_parse)
     monkeypatch.setattr("app.pipeline.save_raw", MagicMock())
     monkeypatch.setattr("app.pipeline.save_observation", MagicMock())
 

@@ -11,6 +11,7 @@ COPY scripts/replicate_and_transform.sh ./scripts/replicate_and_transform.sh
 COPY warehouse ./warehouse
 
 RUN pip install --no-cache-dir . "google-cloud-bigquery>=3.27" "dbt-bigquery>=1.8,<2" \
+    && sed -i 's/\r$//' scripts/replicate_and_transform.sh \
     && chmod +x scripts/replicate_and_transform.sh
 
 ENV PYTHONUNBUFFERED=1

@@ -10,6 +10,8 @@ select
     url::varchar as url,
     name::varchar as name,
     address::varchar as address,
+    asset_type::varchar as asset_type,
+    attributes::varchar as attributes,
     created_at::timestamptz as created_at
 from {{ ref('ci_facilities') }}
 {% else %}
@@ -20,6 +22,8 @@ select
     url,
     name,
     address,
+    asset_type,
+    attributes,
     created_at
 from {{ source('raw', 'facilities') }}
 {% endif %}

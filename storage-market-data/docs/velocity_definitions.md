@@ -69,15 +69,21 @@ be gated for weeks. That is correct.
 
 Hand-built seed `warehouse/seeds/facility_market_map.csv`, keyed by
 `provider` + `slug` (not integer `facility_id`). No address parsing.
-The current 10 facilities are one per city; competitive-positioning
-markets will mostly be singletons until more facilities exist. Do not
-merge states to fake a competitive set.
+Markets are still one row per provider+slug; do not merge cities or
+metros to fake a competitive set.
+
+ReadySpaces (Milestone 6) listing pages only show currently available
+units. Confirmed `SOLD_OUT` transitions will generally not fire for that
+provider; velocity is **inferred-only** (present on OK snapshot T, absent
+on T+1). `price_data_available = false` for every ReadySpaces listing —
+do not treat a null price as a data-quality bug.
 
 ---
 
-## Rule 6 — Storage-specific columns
+## Rule 6 — Universal listing fields
 
-`width_ft`, `length_ft`, and per-unit monthly prices are self-storage
-shapes. Any dbt model that selects them must comment that they
-generalize in Milestone 6. Do not treat them as universal listing
-fields.
+Core marts use `square_footage`, `price`, `price_unit`, and
+`price_data_available`. Storage-specific `width_ft` / `length_ft` live
+in `units.attributes` (and leftover columns). Filter
+`price_history_by_market` to `price_data_available = true` so providers
+that never publish price are not silent $0 rows.
